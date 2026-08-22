@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Zero to Hireable — Build Log</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--border2:#21262d;--text:#e6edf3;--text2:#8b949e;--text3:#6e7681;--green:#3fb950;--green-dim:#1a4428;--green-glow:rgba(63,185,80,.12);--blue:#58a6ff;--blue-dim:#1c3557;--purple:#bc8cff;--amber:#e3b341;--amber-dim:#3d2e0a;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;}
+button{cursor:pointer;font-family:inherit;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;}
+/* LOGIN */
+#login{align-items:center;justify-content:center;flex-direction:column;background:var(--bg);}
+.lb{width:100%;max-width:420px;padding:0 24px;}
+.l-badge{display:inline-flex;align-items:center;gap:8px;background:var(--green-dim);border:1px solid var(--green);color:var(--green);padding:4px 14px;border-radius:20px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px;}
+.l-badge::before{content:"●";font-size:8px;}
+.l-title{font-size:clamp(28px,6vw,44px);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:12px;}
+.l-title em{font-style:italic;color:var(--blue);}
+.l-sub{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:32px;}
+.l-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px;}
+.l-inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-family:inherit;font-size:15px;color:var(--text);outline:none;transition:border-color .15s;}
+.l-inp:focus{border-color:var(--blue);}
+.l-inp::placeholder{color:var(--text3);}
+.l-btn{width:100%;margin-top:12px;background:var(--green);border:none;border-radius:8px;padding:14px;font-family:inherit;font-size:14px;font-weight:700;color:#000;letter-spacing:.04em;transition:opacity .15s;}
+.l-btn:hover{opacity:.88;}
+.l-note{margin-top:16px;font-size:11px;color:var(--text3);text-align:center;}
+.l-known{margin-top:28px;border-top:1px solid var(--border);padding-top:20px;}
+.l-kl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:12px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;}
+.chip:hover{border-color:var(--blue);color:var(--blue);}
+/* APP */
+#app{flex-direction:row;}
+.sidebar{width:256px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+.sb-head{padding:18px 20px;border-bottom:1px solid var(--border);}
+.sb-name{font-size:14px;font-weight:700;}
+.sb-user{font-size:11px;color:var(--green);margin-top:3px;}
+.sb-prog{padding:14px 20px;border-bottom:1px solid var(--border);}
+.sb-plbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;display:flex;justify-content:space-between;}
+.sb-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.sb-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s;}
+.sb-st{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text2);}
+.sb-nav{padding:8px;flex:1;}
+.ni{display:flex;align-items:center;gap:9px;padding:7px 12px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:11px;transition:all .15s;margin-bottom:2px;}
+.ni:hover{background:var(--bg3);color:var(--text);}
+.nd{width:8px;height:8px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .2s;}
+.nd.done{background:var(--green);border-color:var(--green);}
+.nd.part{background:var(--amber);border-color:var(--amber);}
+.nn{font-size:10px;color:var(--text3);width:18px;flex-shrink:0;}
+.sb-bot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.sb-b{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px;font-family:inherit;font-size:11px;border-radius:6px;transition:all .15s;}
+.sb-b:hover{border-color:var(--text2);color:var(--text);}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{position:sticky;top:0;background:rgba(13,17,23,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:11px 36px;display:flex;align-items:center;justify-content:space-between;z-index:100;}
+.tl{font-size:12px;color:var(--text2);}
+.tl span{color:var(--green);font-weight:600;}
+.tbts{display:flex;gap:8px;}
+.tb{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 12px;font-family:inherit;font-size:11px;border-radius:6px;transition:all .15s;}
+.tb:hover{border-color:var(--text2);color:var(--text);}
+.tb.adm{border-color:var(--purple);color:var(--purple);}
+.tb.adm:hover{background:rgba(188,140,255,.1);}
+.content{flex:1;overflow-y:auto;}
+/* STAGE */
+.stage{border-bottom:1px solid var(--border);}
+.sh{padding:36px 36px 0;}
+.sm{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.bd{font-size:10px;padding:3px 10px;border-radius:20px;letter-spacing:.1em;text-transform:uppercase;}
+.bn{background:var(--bg3);border:1px solid var(--border);color:var(--text3);}
+.bt{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber);}
+.bdn{background:var(--green-dim);border:1px solid var(--green);color:var(--green);display:none;}
+.stage.ad .bdn{display:block;}
+.stitle{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
+.sdesc{font-size:14px;color:var(--text2);line-height:1.75;max-width:680px;margin-bottom:26px;padding-bottom:22px;border-bottom:1px solid var(--border2);}
+.sdesc em{font-style:italic;color:var(--blue);}
+.slbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.18em;padding:16px 36px 10px;border-bottom:1px solid var(--border2);}
+.tl2{list-style:none;}
+.tr{border-bottom:1px solid var(--border2);}
+.thd{display:flex;align-items:flex-start;gap:12px;padding:13px 36px;cursor:pointer;transition:background .1s;}
+.thd:hover{background:var(--bg2);}
+.tr.op .thd{background:var(--bg2);}
+.ck{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;margin-top:1px;position:relative;transition:all .15s;}
+.ck:hover{border-color:var(--green);}
+.tr.dn .ck{background:var(--green);border-color:var(--green);}
+.tr.dn .ck::after{content:"✓";position:absolute;color:#000;font-size:11px;font-weight:700;top:50%;left:50%;transform:translate(-50%,-50%);}
+.ti{flex:1;}
+.tlb{font-size:14px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:2px;}
+.tr.dn .tlb{color:var(--text3);text-decoration:line-through;}
+.tsb{font-size:11px;color:var(--text3);}
+.tex{font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:4px;flex-shrink:0;transition:all .15s;}
+.thd:hover .tex{border-color:var(--text2);color:var(--text2);}
+.tr.op .tex{color:var(--blue);border-color:var(--blue);}
+.tb2{display:none;padding:0 36px 20px 68px;background:var(--bg2);border-top:1px solid var(--border2);}
+.tr.op .tb2{display:block;}
+.sps{list-style:none;margin:16px 0 0;}
+.sp{display:flex;gap:12px;margin-bottom:14px;position:relative;}
+.sp:not(:last-child)::before{content:"";position:absolute;left:12px;top:26px;bottom:-14px;width:1px;background:var(--border);}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.sc{flex:1;padding-top:4px;font-size:13px;color:var(--text2);line-height:1.7;}
+.sc strong{color:var(--text);}
+.sc a{color:var(--blue);border-bottom:1px solid rgba(88,166,255,.3);}
+.cmd{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin:6px 0;font-size:12px;color:var(--green);white-space:pre;overflow-x:auto;display:block;}
+.tip{background:var(--amber-dim);border-left:2px solid var(--amber);padding:8px 10px;margin-top:6px;font-size:12px;color:var(--text2);border-radius:0 4px 4px 0;}
+.tip strong{color:var(--amber);}
+.lks{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;}
+.lk{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--blue);text-decoration:none;transition:all .15s;}
+.lk:hover{background:var(--blue-dim);border-color:var(--blue);}
+.lk .tg{background:var(--green-dim);border:1px solid var(--green);color:var(--green);font-size:9px;padding:1px 5px;border-radius:10px;}
+.mw{padding:20px 36px;}
+.ms{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;gap:16px;cursor:pointer;transition:all .2s;}
+.ms:hover{border-color:var(--green);}
+.ms.sk{background:var(--green-dim);border-color:var(--green);}
+.mi{font-size:22px;flex-shrink:0;margin-top:2px;}
+.mb{flex:1;}
+.mt{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.ms.sk .mt{color:var(--green);}
+.mx{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:6px;}
+.ma{font-size:11px;color:var(--text3);}
+.ms.sk .ma{color:var(--green);}
+.cw{padding:6px 36px 28px;}
+.cb{border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.ch{background:var(--bg3);padding:10px 14px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.14em;border-bottom:1px solid var(--border);}
+.ci{padding:11px 14px;border-bottom:1px solid var(--border2);font-size:13px;color:var(--text2);display:flex;gap:10px;}
+.ci:last-child{border-bottom:none;}
+.ci::before{content:"?";color:var(--purple);font-weight:700;flex-shrink:0;}
+/* ADMIN */
+#admin{flex-direction:column;}
+.adm-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;}
+.adm-bar h2{font-size:16px;font-weight:700;}
+.adm-bk{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;font-family:inherit;font-size:12px;border-radius:6px;}
+.adm-body{padding:32px 40px;flex:1;overflow-y:auto;}
+.adm-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px;}
+.stc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.stcl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;}
+.stcv{font-size:22px;font-weight:700;letter-spacing:-.02em;}
+.stcv small{font-size:13px;font-weight:400;color:var(--text2);}
+.ugrid{display:grid;gap:12px;}
+.uc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;}
+.uct{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.uav{width:38px;height:38px;border-radius:50%;background:var(--bg3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--blue);flex-shrink:0;}
+.unm{font-size:15px;font-weight:600;}
+.uj{font-size:11px;color:var(--text3);margin-top:2px;}
+.upct{margin-left:auto;font-size:20px;font-weight:700;color:var(--green);}
+.ubw{margin-bottom:10px;}
+.ub{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.ubf{height:100%;background:var(--green);border-radius:3px;}
+.uss{display:flex;flex-wrap:wrap;gap:6px;}
+.sc2{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);}
+.sc2.done{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.sc2.part{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.empty{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty .big{font-size:40px;margin-bottom:12px;}
+@media(max-width:800px){.sidebar{display:none;}.thd{padding:13px 20px;}.tb2{padding:0 20px 18px 20px;}.sh,.slbl{padding-left:20px;padding-right:20px;}.mw,.cw{padding-left:20px;padding-right:20px;}.topbar{padding:11px 20px;}.adm-body,.adm-bar{padding-left:20px;padding-right:20px;}}
+::selection{background:var(--blue);color:#000;}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="login">
+  <div class="lb">
+    <div class="l-badge">zero to hireable</div>
+    <h1 class="l-title">Your name.<br><em>That's all.</em></h1>
+    <p class="l-sub">Type your name to start or continue your build log. Progress saves automatically — you never lose it, even if you close the tab.</p>
+    <div class="l-lbl">your name</div>
+    <input class="l-inp" id="ni" type="text" placeholder="e.g. Ginnie, Ahmad, Sarah..." autocomplete="off" maxlength="40"/>
+    <button class="l-btn" id="lb2">start building →</button>
+    <p class="l-note">No password. No email. Just your name.</p>
+    <div class="l-known" id="lk" style="display:none">
+      <div class="l-kl">welcome back — click to continue</div>
+      <div class="chips" id="lc"></div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="app">
+  <nav class="sidebar">
+    <div class="sb-head"><div class="sb-name">zero to hireable</div><div class="sb-user" id="sbu">—</div></div>
+    <div class="sb-prog">
+      <div class="sb-plbl"><span>progress</span><span id="sbp">0%</span></div>
+      <div class="sb-bar"><div class="sb-fill" id="sbf" style="width:0%"></div></div>
+      <div class="sb-st"><span><span id="sbd">0</span>/<span id="sbt">0</span> tasks</span><span>day <span id="sbdy">1</span></span></div>
+    </div>
+    <div class="sb-nav" id="sbn"></div>
+    <div class="sb-bot">
+      <button class="sb-b" id="bsw">switch user</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="tl"><span id="tpd">0</span> tasks done · day <span id="tdy">1</span></div>
+      <div class="tbts">
+        <button class="tb adm" id="badm" style="display:none">👑 dashboard</button>
+        <button class="tb" id="blo">sign out</button>
+      </div>
+    </div>
+    <div class="content" id="ct"></div>
+  </div>
+</div>
+
+<div class="screen" id="admin">
+  <div class="adm-bar"><h2>👑 ginnie's dashboard — all learners</h2><button class="adm-bk" id="abk">← back</button></div>
+  <div class="adm-body"><div class="adm-stats" id="ast"></div><div class="ugrid" id="ugr"></div></div>
+</div>
+
+<script>
+const STAGES=[{id:"s0",num:"00",title:"Setup — Your Machine",time:"3–5 days",desc:"Get every tool onto your Mac. Terminal, Git, Node.js, Cursor, GitHub. You only do this once. <em>This is the actual start.</em>",tasks:[{id:"t0-1",label:"Install Node.js",sub:"The engine that runs JavaScript on your computer",steps:[{t:'Go to <a href="https://nodejs.org" target="_blank">nodejs.org</a>. Click the <strong>LTS</strong> button.'},{t:"A file like node-v20.x.x.pkg downloads. Double-click it in Downloads."},{t:"Click Continue → Continue → Install. Enter your Mac password."},{t:'When it says "Installation was successful" click Close.'},{t:"<strong>Quit Terminal completely (Cmd+Q)</strong>. Then reopen it."},{t:"Type this:",c:"node -v"},{t:"You should see v20.x.x. Also check:",c:"npm -v"},{tip:"If you see 'command not found' after restarting Terminal, restart your Mac fully."}],lks:[{n:"nodejs.org",u:"https://nodejs.org"}]},{id:"t0-2",label:"Confirm Git and set identity",sub:"Git tracks your code — your time machine",steps:[{t:"In Terminal:",c:"git --version"},{t:'If you see a version number, Git is installed. If "command not found":',c:"xcode-select --install"},{t:"Click Install on the popup. Wait 2–5 min."},{t:"Set your identity:",c:'git config --global user.name "Your Name"\ngit config --global user.email "your@email.com"'},{t:"Confirm:",c:"git config --global user.name"}],lks:[{n:"Git official site",u:"https://git-scm.com"}]},{id:"t0-3",label:"Create a GitHub account",sub:"Where your code lives online — your portfolio",steps:[{t:'Go to <a href="https://github.com" target="_blank">github.com</a> → Sign up.'},{t:"Pick a clean username. Recruiters will see this."},{t:"Verify your email. Choose the Free plan."},{t:"Fill in your profile: photo, name, short bio."},{tip:"Your GitHub is the first thing a hiring manager looks at."}],lks:[{n:"github.com",u:"https://github.com"}]},{id:"t0-4",label:"Install Cursor — your code editor",sub:"Where you write code. VS Code with AI built in.",steps:[{t:'Go to <a href="https://cursor.com" target="_blank">cursor.com</a> → Download for Mac.'},{t:"Open the .dmg → drag Cursor into Applications."},{t:"Open Cursor → click Install when it asks for command line tools."},{t:"Sign up for a free account."},{t:"Tab = AI autocomplete. Cmd+K = edit with AI. Cmd+L = chat with AI."}],lks:[{n:"cursor.com",u:"https://cursor.com"}]},{id:"t0-5",label:"Create Vercel account",sub:"Deploys your sites in seconds",steps:[{t:'Go to <a href="https://vercel.com" target="_blank">vercel.com</a> → Sign Up.'},{t:"Choose Continue with GitHub. Choose the Hobby (free) plan."}],lks:[{n:"vercel.com",u:"https://vercel.com"}]},{id:"t0-6",label:"Learn 6 terminal commands",sub:"Less scary than it looks",steps:[{t:"Open Terminal: Cmd+Space → type 'terminal' → Enter."},{t:"These 6 cover 80% of everything:",c:"pwd           # where am I?\nls            # list files here\ncd foldername # go into a folder\ncd ..         # go back one level\nmkdir name    # make a new folder\ntouch file.js # make a new empty file"},{t:"Try: mkdir mytest → cd mytest → pwd. See the path end in /mytest."}],lks:[{n:"Terminal crash course (YouTube)",u:"https://www.youtube.com/watch?v=aKRYQsKR46I"}]},{id:"t0-7",label:"Learn Git with the interactive game",sub:"Play your way through the actual concepts",steps:[{t:'Go to <a href="https://learngitbranching.js.org" target="_blank">learngitbranching.js.org</a>.'},{t:"Complete: Main → Introduction Sequence (4 levels), then Remote → Push & Pull (8 levels)."},{t:"The 4 commands you'll use 95% of the time:",c:"git init            # start tracking\ngit add .           # stage changes\ngit commit -m \"msg\" # save snapshot\ngit push            # send to GitHub"}],lks:[{n:"Learn Git Branching (game)",u:"https://learngitbranching.js.org"},{n:"freeCodeCamp Git crash course",u:"https://www.youtube.com/watch?v=RGOj5yH7evk"}]},{id:"t0-8",label:"Push your first repo to GitHub",sub:"Code on your laptop → live on the internet",steps:[{t:"On GitHub: + → New repository → name it hello-world → check Add README → Create."},{t:"Click green Code button → copy the HTTPS URL."},{t:"In Terminal:",c:"cd ~/Desktop\ngit clone https://github.com/yourusername/hello-world.git\ncd hello-world\ncursor ."},{t:"Edit the README.md. Add: 'Hi, I'm [name]. I'm learning to build things.' Save."},{t:"Push:",c:"git add .\ngit commit -m \"my first commit\"\ngit push"},{t:"Refresh GitHub. Your change is live. <strong>That's the entire flow.</strong>"},{tip:"If git push asks for password: use a Personal Access Token. GitHub → Settings → Developer Settings → Personal Access Tokens → Generate new token."}],lks:[{n:"GitHub docs: creating a repo",u:"https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository"}]}],chk:["What's the difference between Git (the tool) and GitHub (the website)?","What do git add, commit, and push each do?","Why do you quit and reopen Terminal after installing Node?"],ms:{id:"m0",txt:"A public GitHub repo called hello-world with commits you pushed from Terminal."}},{id:"s1",num:"01",title:"HTML & CSS",time:"1–2 weeks",desc:"HTML is the structure. CSS is the style. Every website ever built starts here. <em>Type every example yourself. Don't copy-paste.</em>",tasks:[{id:"t1-1",label:"The Odin Project — Foundations",sub:"Gold standard free curriculum",steps:[{t:'Go to <a href="https://www.theodinproject.com/paths/foundations/courses/foundations" target="_blank">theodinproject.com → Foundations</a>.'},{t:"Work through HTML Foundations then CSS Foundations — every lesson and exercise."},{tip:"The Odin Project makes you Google things. That's what being a developer is."}],lks:[{n:"The Odin Project",u:"https://www.theodinproject.com/paths/foundations/courses/foundations"}]},{id:"t1-2",label:"Flexbox Froggy — all 24 levels",sub:"How you arrange things in a row or column",steps:[{t:'Go to <a href="https://flexboxfroggy.com" target="_blank">flexboxfroggy.com</a>. Complete all 24 levels.'},{t:"Properties to memorise:",c:"display: flex;\njustify-content: center;  /* horizontal */\nalign-items: center;      /* vertical */\nflex-direction: row;\ngap: 16px;"}],lks:[{n:"Flexbox Froggy",u:"https://flexboxfroggy.com"},{n:"CSS Tricks Flexbox",u:"https://css-tricks.com/snippets/css/a-guide-to-flexbox/"}]},{id:"t1-3",label:"Grid Garden — all 28 levels",sub:"Two-dimensional layouts",steps:[{t:'Go to <a href="https://cssgridgarden.com" target="_blank">cssgridgarden.com</a>. Complete all 28 levels.'},{t:"Key property:",c:"display: grid;\ngrid-template-columns: repeat(3, 1fr);\ngap: 20px;"}],lks:[{n:"Grid Garden",u:"https://cssgridgarden.com"}]},{id:"t1-4",label:"Build a portfolio — pure HTML & CSS",sub:"Your first shipped thing",steps:[{t:"Create folder portfolio on Desktop. Open in Cursor:",c:"cursor ~/Desktop/portfolio"},{t:"Create index.html and style.css. Link in HTML head:",c:'<link rel="stylesheet" href="style.css">'},{t:"Build 4 sections: header with your name, about, skills, contact."},{t:"Test: right-click index.html → Open With → Chrome."},{t:"Check mobile: F12 → phone icon → check at 375px. Fix with:",c:"@media (max-width: 768px) {\n  .hero { flex-direction: column; }\n}"}],lks:[{n:"Google Fonts",u:"https://fonts.google.com"}]},{id:"t1-5",label:"Deploy to GitHub Pages",sub:"Real link. Shareable. Under your name.",steps:[{t:"Initialise git in your portfolio folder:",c:"git init\ngit add .\ngit commit -m \"first portfolio commit\""},{t:"On GitHub create a new repo named exactly yourusername.github.io. No README."},{t:"Link and push:",c:"git remote add origin https://github.com/yourusername/yourusername.github.io.git\ngit branch -M main\ngit push -u origin main"},{t:"Wait 2 min. Open https://yourusername.github.io. Live."}],lks:[{n:"GitHub Pages docs",u:"https://docs.github.com/en/pages"}]}],chk:["Difference between a class and an id in CSS?","When would you use Flexbox vs Grid?","What does 'responsive' mean?"],ms:{id:"m1",txt:"Portfolio live at yourusername.github.io — real link, looks clean on mobile."}},{id:"s2",num:"02",title:"JavaScript — The Language",time:"2–3 weeks",desc:"Makes pages do things. It's what React, Next.js, and Node are built on. <em>Every hour here pays dividends for 16 weeks. Type everything by hand.</em>",tasks:[{id:"t2-1",label:"javascript.info — Part 1",sub:"Best free JS resource on the internet",steps:[{t:'Go to <a href="https://javascript.info/first-steps" target="_blank">javascript.info → Part 1</a>. Read each chapter and do exercises.'},{t:"To run JS: Chrome → F12 → Console tab."},{tip:"If something confuses you, ask Cursor AI to explain differently. Understanding beats speed."}],lks:[{n:"javascript.info Part 1",u:"https://javascript.info/first-steps"}]},{id:"t2-2",label:"Learn async/await and fetch()",sub:"How your code talks to the internet",steps:[{t:'Read <a href="https://javascript.info/async-await" target="_blank">javascript.info: async/await</a>. Read it twice.'},{t:"Try in your browser console:",c:'async function getData() {\n  const res = await fetch("https://api.github.com/users/gibbiechu");\n  const data = await res.json();\n  console.log(data);\n}\ngetData();'},{t:"Three array methods you'll use every day:",c:"[1,2,3].map(n => n * 2)        // → [2,4,6]\n[1,2,3,4].filter(n => n > 2)  // → [3,4]\n[1,2,3].find(n => n > 1)      // → 2"}],lks:[{n:"javascript.info: async/await",u:"https://javascript.info/async-await"}]},{id:"t2-3",label:"Build: Todo app with localStorage",sub:"First real project — saves between refreshes",steps:[{t:"Create folder todo-app. Inside: index.html, style.css, script.js."},{t:"Features: add todo, mark done, delete, saves on refresh.",c:"localStorage.setItem('todos', JSON.stringify(todos));\nconst saved = JSON.parse(localStorage.getItem('todos')) || [];"}],lks:[{n:"MDN: localStorage",u:"https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"}]},{id:"t2-4",label:"Build: Calculator app",sub:"JS functions, conditionals, DOM",steps:[{t:"Build a working calculator: 0–9, +, –, ×, ÷, equals, clear."},{t:"Deploy to GitHub Pages when done."}],lks:[]},{id:"t2-5",label:"Build: API explorer app",sub:"Fetch real data and show it",steps:[{t:"Pick a free API:",c:"Dad jokes: https://icanhazdadjoke.com/\nDog photos: https://dog.ceo/api/breeds/image/random\nPokémon:    https://pokeapi.co/api/v2/pokemon/pikachu"},{t:"Build a page with a button → click → fetch → show on screen.",c:"async function fetchData() {\n  try {\n    const res = await fetch('URL_HERE');\n    const data = await res.json();\n    document.getElementById('out').textContent = data.joke;\n  } catch(e) { console.error(e); }\n}"}],lks:[{n:"Public APIs list",u:"https://github.com/public-apis/public-apis"}]}],chk:["What does async/await do — why can't you write code without it?","Difference between .map() and .forEach()?","Difference between == and === ?"],ms:{id:"m2",txt:"Three projects deployed: todo app + calculator + API explorer. All on GitHub Pages."}},{id:"s3",num:"03",title:"TypeScript",time:"1 week",desc:"JavaScript where you tell the computer what shape your data is. <em>Every modern job requires it.</em>",tasks:[{id:"t3-1",label:"Total TypeScript — Beginners Tutorial",sub:"Interactive, free, best for beginners",steps:[{t:'Go to <a href="https://www.totaltypescript.com/tutorials/beginners-typescript" target="_blank">totaltypescript.com → Beginners TypeScript</a>.'},{t:"Complete every exercise. Errors disappear as you fix them."}],lks:[{n:"Total TypeScript: Beginners",u:"https://www.totaltypescript.com/tutorials/beginners-typescript"},{n:"TypeScript Handbook",u:"https://www.typescriptlang.org/docs/handbook/intro.html"}]},{id:"t3-2",label:"Convert your Todo app to TypeScript",sub:"Apply it to code you already understand",steps:[{t:"Copy todo-app folder → rename todo-app-ts."},{t:"Initialise TS:",c:"npm init -y\nnpm install typescript --save-dev\nnpx tsc --init"},{t:"Rename script.js to script.ts. Add types:",c:"interface Todo {\n  id: number;\n  text: string;\n  done: boolean;\n}\nconst todos: Todo[] = [];"},{t:"Compile:",c:"npx tsc"}],lks:[{n:"TypeScript Playground",u:"https://www.typescriptlang.org/play"}]}],chk:["Why TypeScript if JavaScript works?","Type vs interface?","What does TypeScript compile into?"],ms:{id:"m3",txt:"Todo app fully converted to TypeScript. Zero any types. Compiles clean."}},{id:"s4",num:"04",title:"React — Building UIs",time:"2 weeks",desc:"Powers Facebook, Airbnb, Notion. Mental model: <em>your UI is a function of your data</em>. Change the data, the UI updates itself.",tasks:[{id:"t4-1",label:"react.dev/learn — official tutorial",sub:"Best official docs of any framework",steps:[{t:'Go to <a href="https://react.dev/learn" target="_blank">react.dev/learn</a>. Read Quick Start, then do the Tic-Tac-Toe tutorial.'},{t:"Type every line yourself."},{t:'Read <a href="https://react.dev/learn/thinking-in-react" target="_blank">Thinking in React</a> twice. This is the whole React philosophy.'}],lks:[{n:"react.dev/learn",u:"https://react.dev/learn"}]},{id:"t4-2",label:"Set up React with Vite",sub:"Modern way to start a React app",steps:[{t:"",c:"cd ~/Desktop\nnpm create vite@latest my-react-app\n# Choose: React → TypeScript\ncd my-react-app\nnpm install\nnpm run dev"},{t:"Open http://localhost:5173 in Chrome."},{t:"Edit src/App.tsx. Save. Watch it update instantly — that's hot reload."}],lks:[{n:"Vite docs",u:"https://vitejs.dev/guide/"}]},{id:"t4-3",label:"Learn useState and useEffect",sub:"Two hooks you'll use in every component",steps:[{t:"useState — holds data that can change:",c:"const [count, setCount] = useState(0);\n<button onClick={() => setCount(count + 1)}>Clicked {count}</button>"},{t:"useEffect — runs code after render:",c:"useEffect(() => {\n  fetch('https://icanhazdadjoke.com/', {headers:{Accept:'application/json'}})\n    .then(r => r.json()).then(d => setJoke(d.joke));\n}, []); // [] = run once on load"},{t:"Build a dad joke fetcher with both hooks."}],lks:[{n:"useState docs",u:"https://react.dev/reference/react/useState"},{n:"useEffect docs",u:"https://react.dev/reference/react/useEffect"}]},{id:"t4-4",label:"Build a real React app and deploy",sub:"Something you'd actually use",steps:[{t:"Pick one: expense tracker, habit tracker, weather app, movie search."},{t:"Requirements: 3+ components, useState, useEffect, looks good."},{t:"Deploy:",c:"npm install -g vercel\nvercel\n# Follow the prompts. Live URL in seconds."}],lks:[{n:"Open-Meteo (free weather API)",u:"https://open-meteo.com/en/docs"}]}],chk:["Props vs state — example of each?","Why does React need keys on .map() lists?","What happens if you forget [] at end of useEffect?"],ms:{id:"m4",txt:"A React + TypeScript app deployed to Vercel with a live URL."}},{id:"s5",num:"05",title:"Next.js + Tailwind",time:"2 weeks",desc:"Next.js is React with routing and server rendering built in. Tailwind is utility-first CSS. <em>This is the actual stack the job uses.</em>",tasks:[{id:"t5-1",label:"nextjs.org/learn — official course",sub:"Builds a real full-stack dashboard",steps:[{t:'Go to <a href="https://nextjs.org/learn" target="_blank">nextjs.org/learn</a>. Do every chapter.',c:"npx create-next-app@latest nextjs-dashboard\n# TypeScript Yes, Tailwind Yes, App Router Yes\nnpm run dev"}],lks:[{n:"Next.js Learn",u:"https://nextjs.org/learn"}]},{id:"t5-2",label:"Server vs client components",sub:"Most important concept in modern Next.js",steps:[{t:"Server components: run on server, can read databases, no JS to browser. Default."},{t:"Client components: run in browser, can use useState/useEffect. Add:",c:'"use client"\nimport { useState } from "react";'},{t:"Stay on the server unless you need interactivity."}],lks:[{n:"Next.js: Server Components",u:"https://nextjs.org/docs/app/building-your-application/rendering/server-components"}]},{id:"t5-3",label:"Tailwind and shadcn/ui",sub:"Style fast. Ship fast.",steps:[{t:"Tailwind: add utility classes in HTML instead of writing CSS files.",c:'/* Old */\n.btn { background: blue; padding: 8px 16px; }\n/* Tailwind */\n<button className="bg-blue-500 px-4 py-2 rounded">Click</button>'},{t:"Install shadcn:",c:"npx shadcn@latest init\nnpx shadcn@latest add button"},{t:'Browse <a href="https://ui.shadcn.com" target="_blank">ui.shadcn.com</a> for components.'}],lks:[{n:"Tailwind docs",u:"https://tailwindcss.com/docs"},{n:"shadcn/ui",u:"https://ui.shadcn.com"}]},{id:"t5-4",label:"Rebuild portfolio in Next.js + Tailwind",sub:"The real stack version",steps:[{t:"",c:"npx create-next-app@latest my-portfolio --typescript --tailwind --app"},{t:"Recreate your portfolio. Store projects as a TypeScript array and .map() over them."},{t:"Deploy:",c:"vercel"}],lks:[]}],chk:["What's a server component in plain English?","What does 'use client' do?","What does 'flex items-center justify-between gap-4' do?"],ms:{id:"m5",txt:"Portfolio rebuilt in Next.js + Tailwind on Vercel. This is what you send people."}},{id:"s6",num:"06",title:"Backend — APIs & Databases",time:"2 weeks",desc:"Where data lives and how the frontend talks to it. <em>This separates 'I built a website' from 'I built a product.'</em>",tasks:[{id:"t6-1",label:"REST and HTTP basics",sub:"How every app communicates",steps:[{t:"The 4 HTTP methods:",c:"GET    — read\nPOST   — create\nPUT    — update\nDELETE — delete"},{t:"Status codes:",c:"200 — OK\n201 — Created\n400 — Bad Request\n401 — Unauthorized\n404 — Not Found\n500 — Server Error"},{t:'Install <a href="https://www.usebruno.com" target="_blank">Bruno</a> — free API testing client.'}],lks:[{n:"MDN: HTTP methods",u:"https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods"},{n:"Bruno API client",u:"https://www.usebruno.com"}]},{id:"t6-2",label:"Build API routes in Next.js",sub:"Backend inside your Next.js project",steps:[{t:"Create app/api/hello/route.ts:",c:'export async function GET() {\n  return Response.json({ message: "hello from server" });\n}\nexport async function POST(req: Request) {\n  const body = await req.json();\n  return Response.json({ received: body });\n}'},{t:"Go to http://localhost:3000/api/hello — see the JSON."},{t:"Test POST in Bruno."}],lks:[{n:"Next.js Route Handlers",u:"https://nextjs.org/docs/app/building-your-application/routing/route-handlers"}]},{id:"t6-3",label:"Postgres with Neon",sub:"Free serverless database — 5 minutes",steps:[{t:'Go to <a href="https://neon.tech" target="_blank">neon.tech</a> → sign up → Create Project.'},{t:"Add connection string to .env.local:",c:'DATABASE_URL="postgresql://user:pass@host/dbname"'},{t:"Add .env.local to .gitignore. Never commit secrets."}],lks:[{n:"Neon — free Postgres",u:"https://neon.tech"}]},{id:"t6-4",label:"Drizzle ORM",sub:"TypeScript-safe database queries",steps:[{t:"Install:",c:"npm install drizzle-orm @neondatabase/serverless\nnpm install -D drizzle-kit"},{t:"Create schema:",c:"import { pgTable, serial, text, boolean } from 'drizzle-orm/pg-core';\nexport const todos = pgTable('todos', {\n  id: serial('id').primaryKey(),\n  text: text('text').notNull(),\n  done: boolean('done').default(false),\n});"},{t:"Push to database:",c:"npx drizzle-kit push"}],lks:[{n:"Drizzle ORM docs",u:"https://orm.drizzle.team/docs/overview"}]},{id:"t6-5",label:"Build full CRUD app",sub:"Browser → API → database → back",steps:[{t:"Rebuild todo app — data saves to real Postgres."},{t:"Test every API route in Bruno before connecting frontend."},{t:"Deploy: add DATABASE_URL to Vercel → Project → Settings → Environment Variables."}],lks:[]}],chk:["Difference between GET and POST?","What does 401 vs 404 vs 500 mean?","Why is it dangerous to put DB URL in your code?"],ms:{id:"m6",txt:"Full-stack CRUD app deployed — Next.js, API routes, real Postgres database."}},{id:"s7",num:"07",title:"Auth + Convex",time:"1–2 weeks",desc:"Apps need users who log in. Convex is a realtime backend — <em>the exact tech the job description mentions</em>. Puts you ahead of 90% of applicants.",tasks:[{id:"t7-1",label:"Full Convex tutorial",sub:"Beginner-friendly, realtime, powerful",steps:[{t:'Go to <a href="https://docs.convex.dev/tutorial" target="_blank">docs.convex.dev/tutorial</a>. Follow every step.'},{t:"Set up:",c:"npx create-next-app@latest my-convex-app --typescript --tailwind --app\nnpm install convex\nnpx convex dev"},{t:"Convex: queries = read (reactive). mutations = write. actions = call external APIs."}],lks:[{n:"Convex tutorial",u:"https://docs.convex.dev/tutorial"}]},{id:"t7-2",label:"Auth with Clerk",sub:"Easiest auth in the ecosystem",steps:[{t:'Sign up at <a href="https://clerk.com" target="_blank">clerk.com</a> → Create new application.'},{t:"Install:",c:"npm install @clerk/nextjs"},{t:"Add keys to .env.local and follow the Clerk Next.js quickstart."}],lks:[{n:"Clerk Next.js quickstart",u:"https://clerk.com/docs/quickstarts/nextjs"},{n:"Clerk + Convex",u:"https://docs.convex.dev/auth/clerk"}]},{id:"t7-3",label:"Build: private notes app",sub:"Each user has their own private data synced in realtime",steps:[{t:'Follow the <a href="https://docs.convex.dev/auth/clerk" target="_blank">Convex + Clerk integration guide</a>.'},{t:"Save user ID with each note:",c:"const identity = await ctx.auth.getUserIdentity();\nif (!identity) throw new Error('Not logged in');\nawait ctx.db.insert('notes', { text: args.text, userId: identity.subject });"},{t:"Deploy. Log in from your phone. Your notes are there."}],lks:[{n:"Convex + Clerk docs",u:"https://docs.convex.dev/auth/clerk"}]}],chk:["Authentication vs authorisation?","What does a Convex query do differently?","Why Convex instead of writing your own backend?"],ms:{id:"m7",txt:"Deployed app with real login. Each user has their own private data in Convex."}},{id:"s8",num:"08",title:"Git Like a Team",time:"1 week",desc:"Branches for every feature, PRs for review, never touching main directly. <em>This makes you look professional, not hobbyist.</em>",tasks:[{id:"t8-1",label:"Complete all of Learn Git Branching",sub:"Including the remote sections",steps:[{t:'Go to <a href="https://learngitbranching.js.org" target="_blank">learngitbranching.js.org</a>. Complete every level.'},{t:"Branch commands:",c:"git checkout -b feature/my-feature\ngit push origin feature/my-feature\ngit checkout main && git pull"}],lks:[{n:"Learn Git Branching",u:"https://learngitbranching.js.org"},{n:"Pro Git (free book)",u:"https://git-scm.com/book/en/v2"}]},{id:"t8-2",label:"Practice the PR workflow",sub:"Branch → change → PR → merge",steps:[{t:"In any project:",c:"git checkout -b add-dark-mode"},{t:"Make a change. Push:",c:"git add . && git commit -m 'add dark mode'\ngit push origin add-dark-mode"},{t:"Go to GitHub → Compare & pull request → Create PR → Merge."},{t:"Pull back:",c:"git checkout main && git pull"}],lks:[]},{id:"t8-3",label:"First open-source contribution",sub:"A merged PR on someone else's repo",steps:[{t:'Go to <a href="https://github.com/firstcontributions/first-contributions" target="_blank">github.com/firstcontributions/first-contributions</a>.'},{t:"Follow their guide: Fork → Clone → Branch → Edit → PR."},{t:"When merged, it shows in your contribution graph."}],lks:[{n:"First Contributions",u:"https://github.com/firstcontributions/first-contributions"},{n:"Good First Issues",u:"https://goodfirstissues.com"}]}],chk:["git pull vs git fetch?","How do you fix a merge conflict?","Why never commit directly to main in a team?"],ms:{id:"m8",txt:"One merged PR on someone else's open-source repo. Contribution graph filling up."}},{id:"s9",num:"09",title:"AI — LLMs, Embeddings & RAG",time:"2 weeks",desc:"Most junior devs can't do this. Two focused weeks and you can. <em>This stage alone makes you stand out.</em>",tasks:[{id:"t9-1",label:"API keys and first AI call",sub:"Send a message to Claude from code",steps:[{t:'Get Anthropic key: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create Key.'},{t:"Add to .env.local:",c:"ANTHROPIC_API_KEY=sk-ant-..."},{t:"Install and call:",c:'npm install @anthropic-ai/sdk\n\n// app/api/chat/route.ts\nimport Anthropic from "@anthropic-ai/sdk";\nconst anthropic = new Anthropic();\nexport async function POST(req: Request) {\n  const { message } = await req.json();\n  const res = await anthropic.messages.create({\n    model: "claude-sonnet-4-6", max_tokens: 1024,\n    messages: [{ role: "user", content: message }]\n  });\n  return Response.json({ reply: res.content[0].text });\n}'}],lks:[{n:"Anthropic console",u:"https://console.anthropic.com"},{n:"Anthropic API docs",u:"https://docs.anthropic.com"}]},{id:"t9-2",label:"Build a streaming chat UI",sub:"Responses appear word by word",steps:[{t:"Install Vercel AI SDK:",c:"npm install ai @ai-sdk/anthropic"},{t:"Streaming route:",c:'import { streamText } from "ai";\nimport { anthropic } from "@ai-sdk/anthropic";\nexport async function POST(req: Request) {\n  const { messages } = await req.json();\n  const result = streamText({ model: anthropic("claude-sonnet-4-6"), messages });\n  return result.toDataStreamResponse();\n}'},{t:'Follow the <a href="https://sdk.vercel.ai/docs/getting-started/nextjs-app-router" target="_blank">Vercel AI SDK quickstart</a> for the chat page.'}],lks:[{n:"Vercel AI SDK docs",u:"https://sdk.vercel.ai/docs"}]},{id:"t9-3",label:"Learn embeddings",sub:"Text → numbers. How AI measures similarity.",steps:[{t:"An embedding is a list of numbers representing text. Similar texts = similar numbers."},{t:'Read the <a href="https://platform.openai.com/docs/guides/embeddings" target="_blank">OpenAI embeddings guide</a>.'},{t:"Embed 5 sentences. The pizza sentences will score high similarity. Pizza + stock market will score low."}],lks:[{n:"OpenAI embeddings guide",u:"https://platform.openai.com/docs/guides/embeddings"}]},{id:"t9-4",label:"Build RAG — chat with your document",sub:"The job's #1 AI skill",steps:[{t:"RAG flow:",c:"1. Document → split into ~500-word chunks\n2. Embed each chunk → store in vector DB\n3. User asks question → embed question\n4. Find most similar chunks\n5. Pass chunks to LLM as context\n6. LLM answers using only that context"},{t:'Follow: <a href="https://js.langchain.com/docs/tutorials/rag" target="_blank">LangChain JS: Build a RAG app</a>'},{t:'Use <a href="https://docs.convex.dev/search/vector-search" target="_blank">Convex vector search</a> for the vector database.'},{tip:"Make the LLM cite which chunk it used. This separates a demo from a real product."}],lks:[{n:"LangChain JS: RAG tutorial",u:"https://js.langchain.com/docs/tutorials/rag"},{n:"Convex vector search",u:"https://docs.convex.dev/search/vector-search"}]},{id:"t9-5",label:"Anthropic prompt engineering guide",sub:"The real edge. Most engineers skip this.",steps:[{t:'Go to <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank">docs.anthropic.com → Prompt Engineering</a>. Read every page.'},{t:"Try the same task with 3 different system prompts. Document what works."},{t:"Learn: chain of thought, role prompting, structured XML outputs."}],lks:[{n:"Anthropic prompt engineering",u:"https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"},{n:"DeepLearning.AI short courses",u:"https://www.deeplearning.ai/short-courses/"}]}],chk:["Explain RAG in 30 seconds to someone non-technical.","What's an embedding and why is it a list of numbers?","Why doesn't a bigger context window solve the same problem as RAG?"],ms:{id:"m9",txt:"Live 'chat with your document' app — upload PDF, ask questions, get answers with citations."}},{id:"s10",num:"10",title:"Ship Something Real",time:"final month",desc:"Everything before this was training. This is the proof. One idea. Real users. <em>The thing they actually look for when they open your GitHub.</em>",tasks:[{id:"t10-1",label:"Pick one idea and commit",sub:"Not three. One.",steps:[{t:"Ideas:",c:"• AI assistant for Malaysian SME owners\n• AI study tool for MUFY/A-Level students\n• Chat with any document\n• AI grant finder for Malaysian startups"},{t:"Pick the one you'd use. Write one sentence: what it does, who it's for, why it matters."},{t:"Create the GitHub repo. Write the README before writing code."}],lks:[]},{id:"t10-2",label:"Get 5 real users",sub:"Friends count if they actually use it",steps:[{t:"Message 5 people: 'I built this, can you try it and tell me what breaks?'"},{t:"Set up PostHog:",c:"npm install posthog-js  # free: 1M events/month"},{t:"Watch what they actually do — not what they say."}],lks:[{n:"PostHog — free analytics",u:"https://posthog.com"}]},{id:"t10-3",label:"Write a launch post on LinkedIn",sub:"What you built, what broke, what you learned",steps:[{t:"200–300 words. Screenshot + live link."},{t:"Tags: #buildinpublic #javascript #nextjs #ai"},{t:"The point: being findable by the right people."}],lks:[]},{id:"t10-4",label:"60-second pitch and apply",sub:"GitHub does the talking",steps:[{t:"Add to portfolio: screenshot, one-liner, live link, GitHub link, 2–3 sentences on what was technically interesting."},{t:"Practice out loud. 60 seconds. Time it. Cut until clean."},{t:"Apply. What you've built is the application."}],lks:[]}],chk:["Project in one sentence?","Name three specific real people it's for.","The one technically hard thing you figured out?"],ms:{id:"m10",txt:"Real product with 5+ users, LinkedIn post, 60-second pitch you give in your sleep."}}];
+
+const PFX="ztoh-u-",IDX="ztoh-idx",LK2="ztoh-last",ADMIN="ginnie";
+function getIdx(){try{return JSON.parse(localStorage.getItem(IDX)||"[]");}catch{return[];}}
+function saveIdx(a){localStorage.setItem(IDX,JSON.stringify(a));}
+function getUD(n){try{return JSON.parse(localStorage.getItem(PFX+n.toLowerCase())||"null");}catch{return null;}}
+function saveUD(n,d){localStorage.setItem(PFX+n.toLowerCase(),JSON.stringify(d));}
+function initU(n){const e=getUD(n);if(e)return e;const d={name:n,startDate:new Date().toISOString(),done:{}};saveUD(n,d);const idx=getIdx();if(!idx.find(u=>u.toLowerCase()===n.toLowerCase())){idx.push(n);saveIdx(idx);}return d;}
+let CU=null,CD=null;
+function totT(){return STAGES.reduce((s,st)=>s+st.tasks.length+1,0);}
+function doneT(){return Object.keys(CD.done||{}).length;}
+function dayN(){return Math.max(1,Math.floor((Date.now()-new Date(CD.startDate))/86400000)+1);}
+function pct(){return Math.round(doneT()/totT()*100);}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+function renderLogin(){
+  show("login");
+  const users=getIdx();
+  const lk=document.getElementById("lk"),lc=document.getElementById("lc");
+  if(users.length){lk.style.display="block";lc.innerHTML=users.map(u=>`<div class="chip" data-n="${u}">${u}</div>`).join("");lc.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>loginAs(c.dataset.n)));}
+  else lk.style.display="none";
+}
+
+function loginAs(name){
+  name=name.trim();if(!name)return;
+  CU=name;CD=initU(name);
+  localStorage.setItem(LK2,name);
+  renderApp();show("app");
+}
+
+document.getElementById("lb2").addEventListener("click",()=>{const v=document.getElementById("ni").value.trim();if(!v){document.getElementById("ni").focus();return;}loginAs(v);});
+document.getElementById("ni").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("lb2").click();});
+
+function renderApp(){
+  document.getElementById("sbu").textContent=CU;
+  document.getElementById("badm").style.display=CU.toLowerCase()===ADMIN.toLowerCase()?"block":"none";
+  renderNav();renderContent();updateStats();
+}
+
+function renderNav(){
+  document.getElementById("sbn").innerHTML=STAGES.map(st=>{
+    const ids=[...st.tasks.map(t=>t.id),st.ms.id];
+    const dc=ids.filter(id=>CD.done[id]).length;
+    const dot=dc===0?"":dc===ids.length?"done":"part";
+    return`<div class="ni" onclick="document.getElementById('${st.id}')?.scrollIntoView({behavior:'smooth'})"><div class="nd ${dot}"></div><span class="nn">${st.num}</span><span style="flex:1;font-size:11px;line-height:1.3">${st.title}</span></div>`;
+  }).join("");
+}
+
+function renderContent(){
+  document.getElementById("ct").innerHTML=STAGES.map(st=>{
+    const mDone=CD.done[st.ms.id];
+    const allDone=[...st.tasks.map(t=>t.id),st.ms.id].every(id=>CD.done[id]);
+    const tasksHtml=st.tasks.map(task=>{
+      const done=CD.done[task.id];
+      const stepsHtml=task.steps.map((s,i)=>{
+        let h=`<li class="sp"><div class="sn">${i+1}</div><div class="sc">`;
+        if(s.t)h+=`<div>${s.t}</div>`;
+        if(s.c)h+=`<code class="cmd">${esc(s.c)}</code>`;
+        if(s.tip)h+=`<div class="tip"><strong>Tip:</strong> ${s.tip}</div>`;
+        return h+`</div></li>`;
+      }).join("");
+      const lksHtml=task.lks?.length?`<div class="lks">${task.lks.map(l=>`<a class="lk" href="${l.u}" target="_blank" rel="noopener">${l.n}<span class="tg">free</span></a>`).join("")}</div>`:"";
+      const dateStr=done?`<span style="font-size:10px;color:var(--green)">${new Date(done).toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>`:"";
+      return`<li class="tr${done?" dn":""}" data-id="${task.id}">
+        <div class="thd" data-action="exp">
+          <div class="ck" data-action="tog"></div>
+          <div class="ti"><div class="tlb">${task.label}</div><div class="tsb">${task.sub}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${dateStr}<span class="tex">how to ↓</span></div>
+        </div>
+        <div class="tb2">${lksHtml}<ul class="sps">${stepsHtml}</ul></div>
+      </li>`;
+    }).join("");
+    return`<div class="stage${allDone?" ad":""}" id="${st.id}">
+      <div class="sh">
+        <div class="sm"><span class="bd bn">stage ${st.num}</span><span class="bd bt">${st.time}</span><span class="bd bdn">✓ complete</span></div>
+        <div class="stitle">${st.title}</div>
+        <div class="sdesc">${st.desc}</div>
+      </div>
+      <div class="slbl">checklist — click any task for step-by-step</div>
+      <ul class="tl2">${tasksHtml}</ul>
+      <div class="slbl">self-check — can you answer without googling?</div>
+      <div class="cw"><div class="cb"><div class="ch">before moving on</div>${st.chk.map(q=>`<div class="ci">${q}</div>`).join("")}</div></div>
+      <div class="mw"><div class="ms${mDone?" sk":""}" data-id="${st.ms.id}" data-action="ms">
+        <div class="mi">${mDone?"🚀":"🎯"}</div>
+        <div class="mb"><div class="mt">${mDone?"shipped ✓":"milestone"}</div><div class="mx">${st.ms.txt}</div><div class="ma">${mDone?"click to unmark":"→ click when shipped"}</div></div>
+      </div></div>
+    </div>`;
+  }).join("");
+  bindEv();
+}
+
+function bindEv(){
+  document.querySelectorAll(".thd").forEach(h=>{
+    h.addEventListener("click",e=>{
+      const a=e.target.dataset.action||e.target.closest("[data-action]")?.dataset.action;
+      const row=h.closest(".tr");
+      if(a==="tog"){
+        e.stopPropagation();
+        const id=row.dataset.id;
+        if(CD.done[id])delete CD.done[id];else CD.done[id]=new Date().toISOString();
+        saveUD(CU,CD);
+        row.classList.toggle("dn",!!CD.done[id]);
+        const right=row.querySelector(".thd>div:last-child");
+        let ds=right.querySelector("span[style*='green']");
+        if(CD.done[id]){if(!ds){ds=document.createElement("span");ds.style.cssText="font-size:10px;color:var(--green)";right.prepend(ds);}ds.textContent=new Date(CD.done[id]).toLocaleDateString(undefined,{month:"short",day:"numeric"});}
+        else if(ds)ds.remove();
+        updateStats();return;
+      }
+      row.classList.toggle("op");
+      const tex=row.querySelector(".tex");
+      tex.textContent=row.classList.contains("op")?"close ↑":"how to ↓";
+    });
+  });
+  document.querySelectorAll("[data-action='ms']").forEach(m=>{
+    m.addEventListener("click",()=>{
+      const id=m.dataset.id;
+      if(CD.done[id])delete CD.done[id];else CD.done[id]=new Date().toISOString();
+      saveUD(CU,CD);
+      const sk=!!CD.done[id];
+      m.classList.toggle("sk",sk);
+      m.querySelector(".mi").textContent=sk?"🚀":"🎯";
+      m.querySelector(".mt").textContent=sk?"shipped ✓":"milestone";
+      m.querySelector(".ma").textContent=sk?"click to unmark":"→ click when shipped";
+      updateStats();
+    });
+  });
+}
+
+function updateStats(){
+  const d=doneT(),tot=totT(),day=dayN(),p=pct();
+  document.getElementById("sbd").textContent=d;
+  document.getElementById("sbt").textContent=tot;
+  document.getElementById("sbdy").textContent=day;
+  document.getElementById("sbp").textContent=p+"%";
+  document.getElementById("sbf").style.width=p+"%";
+  document.getElementById("tpd").textContent=`${d}/${tot}`;
+  document.getElementById("tdy").textContent=day;
+  document.querySelectorAll("#sbn .ni").forEach((el,i)=>{
+    const st=STAGES[i];
+    const ids=[...st.tasks.map(t=>t.id),st.ms.id];
+    const dc=ids.filter(id=>CD.done[id]).length;
+    const dot=el.querySelector(".nd");dot.className="nd";
+    if(dc===ids.length)dot.classList.add("done");else if(dc>0)dot.classList.add("part");
+    const sec=document.getElementById(st.id);if(sec)sec.classList.toggle("ad",dc===ids.length);
+  });
+}
+
+function renderAdmin(){
+  show("admin");
+  const users=getIdx(),tot=totT();
+  let totalDone=0;
+  const ud=users.map(name=>{const d=getUD(name);if(!d)return null;const dc=Object.keys(d.done||{}).length;totalDone+=dc;return{name,data:d,done:dc,pct:Math.round(dc/tot*100)};}).filter(Boolean);
+  document.getElementById("ast").innerHTML=`
+    <div class="stc"><div class="stcl">total learners</div><div class="stcv">${users.length}</div></div>
+    <div class="stc"><div class="stcl">tasks per user</div><div class="stcv">${tot}</div></div>
+    <div class="stc"><div class="stcl">avg completion</div><div class="stcv">${users.length?Math.round(totalDone/users.length/tot*100):0}<small>%</small></div></div>
+    <div class="stc"><div class="stcl">have started</div><div class="stcv">${ud.filter(u=>u.done>0).length}</div></div>`;
+  if(!ud.length){document.getElementById("ugr").innerHTML=`<div class="empty"><div class="big">👀</div><div>No learners yet. Share the link!</div></div>`;return;}
+  ud.sort((a,b)=>b.pct-a.pct);
+  document.getElementById("ugr").innerHTML=ud.map(u=>{
+    const chips=STAGES.map(st=>{
+      const ids=[...st.tasks.map(t=>t.id),st.ms.id];
+      const dc=ids.filter(id=>u.data.done?.[id]).length;
+      const cls=dc===ids.length?"done":dc>0?"part":"";
+      return`<span class="sc2 ${cls}">${st.num}</span>`;
+    }).join("");
+    const joined=u.data.startDate?new Date(u.data.startDate).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"?";
+    return`<div class="uc">
+      <div class="uct">
+        <div class="uav">${u.name.charAt(0).toUpperCase()}</div>
+        <div><div class="unm">${u.name}</div><div class="uj">joined ${joined}</div></div>
+        <div class="upct">${u.pct}%</div>
+      </div>
+      <div class="ubw"><div class="ub"><div class="ubf" style="width:${u.pct}%"></div></div></div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px">${u.done} / ${tot} tasks done</div>
+      <div class="uss">${chips}</div>
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("badm").addEventListener("click",renderAdmin);
+document.getElementById("abk").addEventListener("click",()=>show("app"));
+document.getElementById("blo").addEventListener("click",()=>{CU=null;CD=null;localStorage.removeItem(LK2);document.getElementById("ni").value="";renderLogin();});
+document.getElementById("bsw").addEventListener("click",()=>{CU=null;CD=null;localStorage.removeItem(LK2);document.getElementById("ni").value="";renderLogin();});
+
+const last=localStorage.getItem(LK2);
+if(last){loginAs(last);}else{renderLogin();}
+</script>
+</body>
+</html>
