@@ -220,7 +220,7 @@ async function ensureUser(n){
     const r=await fetch(`${DB}/users/${encodeURIComponent(n.toLowerCase())}.json`);
     if(r.ok){const remote=await r.json();if(remote){localStorage.setItem(PFX+n.toLowerCase(),JSON.stringify(remote));const idx=getIdx();if(!idx.find(u=>u.toLowerCase()===n.toLowerCase())){idx.push(n);saveIdx(idx);}return remote;}}
   }catch{}
-  const e=getUD(n);if(e)return e;
+  const e=getUD(n);if(e){syncRemote(n,e);return e;}
   return initU(n);
 }
 let CU=null,CD=null;
