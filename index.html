@@ -223,7 +223,7 @@ async function ensureUser(n){
   const local=getUD(n);
   let remote=null;
   try{
-    const r=await fetch(`${DB}/users/${encodeURIComponent(n.toLowerCase())}.json`);
+    const r=await fetch(`${DB}/users/${encodeURIComponent(n.toLowerCase())}.json`,{signal:AbortSignal.timeout(4000)});
     if(r.ok)remote=await r.json();
   }catch{}
   if(local||remote){
@@ -388,7 +388,7 @@ async function renderAdmin(){
   document.getElementById("ast").innerHTML="";
   document.getElementById("ugr").innerHTML=`<div class="empty"><div class="big">⏳</div><div>Loading learners...</div></div>`;
   let remote={};
-  try{const r=await fetch(`${DB}/users.json`);if(r.ok)remote=(await r.json())||{};}catch{}
+  try{const r=await fetch(`${DB}/users.json`,{signal:AbortSignal.timeout(6000)});if(r.ok)remote=(await r.json())||{};}catch{}
   const names=new Set([...getIdx(),...Object.values(remote).map(u=>u.name)]);
   const tot=totT();
   let totalDone=0;
