@@ -215,12 +215,24 @@ function getUD(n){try{return JSON.parse(localStorage.getItem(PFX+n.toLowerCase()
 function syncRemote(n,d){fetch(`${DB}/users/${encodeURIComponent(n.toLowerCase())}.json`,{method:"PUT",body:JSON.stringify(d)}).catch(()=>{});}
 function saveUD(n,d){localStorage.setItem(PFX+n.toLowerCase(),JSON.stringify(d));syncRemote(n,d);}
 function initU(n){const e=getUD(n);if(e)return e;const d={name:n,startDate:new Date().toISOString(),done:{}};saveUD(n,d);const idx=getIdx();if(!idx.find(u=>u.toLowerCase()===n.toLowerCase())){idx.push(n);saveIdx(idx);}return d;}
+function mergeUD(a,b){
+  if(!a)return b;if(!b)return a;
+  return{name:a.name||b.name,startDate:(a.startDate<b.startDate?a.startDate:b.startDate),done:{...b.done,...a.done}};
+}
 async function ensureUser(n){
+  const local=getUD(n);
+  let remote=null;
   try{
     const r=await fetch(`${DB}/users/${encodeURIComponent(n.toLowerCase())}.json`);
-    if(r.ok){const remote=await r.json();if(remote){localStorage.setItem(PFX+n.toLowerCase(),JSON.stringify(remote));const idx=getIdx();if(!idx.find(u=>u.toLowerCase()===n.toLowerCase())){idx.push(n);saveIdx(idx);}return remote;}}
+    if(r.ok)remote=await r.json();
   }catch{}
-  const e=getUD(n);if(e){syncRemote(n,e);return e;}
+  if(local||remote){
+    const merged=mergeUD(local,remote);
+    localStorage.setItem(PFX+n.toLowerCase(),JSON.stringify(merged));
+    syncRemote(n,merged);
+    const idx=getIdx();if(!idx.find(u=>u.toLowerCase()===n.toLowerCase())){idx.push(n);saveIdx(idx);}
+    return merged;
+  }
   return initU(n);
 }
 let CU=null,CD=null;
